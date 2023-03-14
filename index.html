@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+          <meta charset="UTF-8">
+          <meta http-equiv="X-UA-Compatible" content="IE=edge">
+          <meta name="viewport" content="width=, initial-scale=1.0">
+          <title>Video Calling With PeerJS</title>
+          <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400&family=Poppins:wght@300&display=swap" rel="stylesheet">
+
+</head>
+<body style="min-height: 100vh; min-width: 100%; overflow:hidden;display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 20px;">
+  <h3 id="peer_id_space" style="font-size: 18px; font-family: 'Open Sans', sans-serif;"></h3>
+  <div style="display:flex; flex-direction: row; gap: 5.8px">
+    <div id="myVideo" style="height: 400px; width: 400px; border: 4px solid black;"></div>
+    <div id="remoteVideo" style="height: 400px; width: 400px; border: 4px solid black;"></div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 2.5px;">
+    <input type="text" name="peer_id" id="peer_id" style="font-family: 'Open Sans', sans-serif; height: 0.84cm; width: 5.5cm; border-radius: 5px; border: 1px solid black; outline: none;" placeholder="Your Peer Id">
+    <button style="font-family: 'Open Sans', sans-serif; cursor: pointer; height: 0.84cm; width: 5.5cm; border-radius: 5px; color: #fff; border: none; outline: none; background-color: darkcyan;">Connect</button>
+  </div>
+</body>
+<script>
+  var peer = new Peer();
+ peer.on('open', (id) => {
+    var peerIdSpace = document.querySelector("#peer_id_space");
+    peerIdSpace.textContent = id;
+  });
+  var connectBtn = document.querySelector("button");
+
+  connectBtn.addEventListener("click", e => {
+    var peerId = document.querySelector("#peer_id").value;
+    console.log(peerId)
+    var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+getUserMedia({video: true, audio: true}, function(stream) {
+  var call = peer.call(peerId, stream);
+  call.on('stream', function(remoteStream) {
+    var video = document.createElement("video");
+    video.srcObject = remoteStream;
+    video.style.height = '400px';
+      video.style.width = '400px';
+    document.querySelector("#myVideo").appendChild(video);
+    video.play();
+  });
+}, function(err) {
+  console.log('Failed to get local stream' ,err);
+});
+  });
+
+  var getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+peer.on('call', function(call) {
+  getUserMedia({video: true, audio: true}, function(stream) {
+    call.answer(stream); // Answer the call with an A/V stream.
+    call.on('stream', function(remoteStream) {
+      var video = document.createElement("video");
+    video.srcObject = remoteStream;
+    video.style.height = '400px';
+      video.style.width = '400px';
+    document.querySelector("#remoteVideo").appendChild(video);
+    video.play();
+    });
+  }, function(err) {
+    console.log('Failed to get local stream' ,err);
+  });
+});
+</script>
+</html>
